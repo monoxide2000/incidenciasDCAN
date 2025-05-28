@@ -1,0 +1,496 @@
+---
+title: "Incidencias | Departamento de Ciencias Administrativas"
+author: "Julio César Ramírez"
+date: "2025-05-27"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+library(readxl)
+library(calendR)
+library(dplyr)
+library(lubridate)
+library(DT)
+data <- read_xlsx("asistenciasEM.xlsx", skip = 12)
+dataProc <- data %>% select("ID de Empleado", "Nombre", "Apellido", "Departamento", "Fecha", "Hora", "Estado de Asistencia") %>% distinct()
+names(dataProc) <- c("ID", "Nombre", "Apellido", "Departamento", "Fecha", "Hora", "Tipo")
+exData <- dataProc %>% mutate(ID = factor(ID), Departamento = factor(Departamento),
+Fecha = ymd_hm(paste(Fecha, Hora, sep=" "))) %>% distinct()
+daysPeriod <- function(data, name, apellido="")
+{
+  if(apellido==""){
+  exData <- data %>% filter(Nombre == name)}
+  else
+  {exData <- data %>% filter(Nombre == name, Apellido == apellido)}
+  return(as.character(unique(sort(wday(exData$Fecha, label=TRUE, abbr = FALSE)))))
+}
+datesExpected <- function(daysW, inicio, final){
+  Inasis <- NULL
+  if (sum(daysW=="lunes")>0){
+  temp  <- yday(seq(from=ymd(inicio), to=ymd(final), by="weeks"))
+  Inasis<- c(Inasis, temp)} 
+  if (sum(daysW=="martes")>0){
+  temp  <- yday(seq(from=ymd(inicio)+days(1), to=ymd(final), by="weeks"))
+  Inasis<- c(Inasis, temp)} 
+  if (sum(daysW=="miércoles")>0){
+  temp  <- yday(seq(from=ymd(inicio)+days(2), to=ymd(final), by="weeks"))
+  Inasis<- c(Inasis, temp)} 
+  if (sum(daysW=="jueves")>0){
+  temp  <- yday(seq(from=ymd(inicio)+days(3), to=ymd(final), by="weeks"))
+  Inasis<- c(Inasis, temp)} 
+  if (sum(daysW=="viernes")>0){
+  temp  <- yday(seq(from=ymd(inicio)+days(4), to=ymd(final), by="weeks"))
+  Inasis<- c(Inasis, temp)}
+  return(sort(Inasis))
+}
+
+```
+
+## Profesores
+
+A continuación se muestra un análisis simple de las asistencias de profesores de asignatura del departamento de ciencias administrativas y negocios (DCAN) usando el paquete `calendR`. Primeramente se procesan los datos usando los paquetes `dplyr`y `lubridate` con el propósito de generar nuevas columnas (fecha y hora). Es importante mencionar que muchos de los nombres no se encuentran codificados adecuadamente y por tanto se recomienda recodificar el dispositivo para el chequeo de entradas y salidas. La lista de profesores del DCAN son
+
+```{r profes, echo=FALSE, message=FALSE, warning=FALSE}
+df <- data.frame(Profesores = c("ALFREDO CASTILLO CIRA", "CLAUDIA DÍAZ CASILLAS", "ENRIQUE ROBERTO PERALTA MAZARIEGO", "FABIOLA BETANCOURT OSORIO", "FRANCISCO NAHUAT CHIMAL", "GERARDO FLORES MARCELO", "JORGE LUIS OCOTITLA VÁZQUEZ", "LILIANA CITALÁN", "LUIS BASULTO SOLIS", "MARIO LEORNARDO FERNÁNDEZ UC", "MELCHOR ERNESTO MUÑOZ DZIB", "MIRELLE SOSA CABALLERO", "NESTOR ADOLFO DE LA TORRE SOLIS", "RAYMUNDO MENDOZA", "LUIS CARIDAD NOVELO ALCOCER", "MARIANA CENICEROS NAVARRO", "RAÚL GENARO KIN", "ALFREDO CORTES SANTOS", "ANGEL PRIETO PALMEROS", "MILDRED PAULINA ÁLVAREZ MARTAGÓN", "FRANK ALVIN LORÍA MAYEN"), Depto = rep("CIENCIAS ADMINISTRATIVAS Y NEGOCIOS", 21))
+datatable(df)
+```
+
+
+
+## ALFREDO CASTILLO  CIRA
+
+El profesor Alfredo, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "ALFREDO", "CASTILLO CIRA")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r pressure, echo=FALSE}
+trabN <- "ALFREDO"
+trabA <- "CASTILLO CIRA"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## CLAUDIA EDITH DIAZ CASILLAS
+
+La profesora, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "CLAUDIA EDITH", "DIAZ CASILLAS")`. De acuerdo a los datos, los días en los cuales la profesora asistió y no asistió se muestran en el siguiente calendario.
+
+```{r claudiaDiaz, echo=FALSE}
+trabN <- "CLAUDIA EDITH"
+trabA <- "DIAZ CASILLAS"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"), ymd("2025-05-09"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+
+## ENRIQUE ROBERTO PERALTA MAZARIEGO
+
+El profesor Enrique, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "ENRIQUE ROBERTO", "PERALTA MAZARIEGO")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r mazariego, echo=FALSE}
+trabN <- "ENRIQUE ROBERTO"
+trabA <- "PERALTA MAZARIEGO"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## FABIOLA BETANCOURT OSORIO
+
+La profesora, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "FABIOLA", "BETANCOURT OSORIO")`. De acuerdo a los datos, los días en los cuales la profesora asistió y no asistió se muestran en el siguiente calendario.
+
+```{r fabiolaBetancourt, echo=FALSE}
+trabN <- "FABIOLA"
+trabA <- "BETANCOURT OSORIO"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"), ymd("2025-05-09"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## FRANCISO NAHUAT CHIMAL
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "FRANCISCO", "NAHUAT CHIMAL")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r nahuat, echo=FALSE}
+trabN <- "FRANCISCO"
+trabA <- "NAHUAT CHIMAL"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+
+## GERARDO FLORES MARCELO
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "GERARDO", "FLORES MARCELO")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r floresM, echo=FALSE}
+trabN <- "GERARDO"
+trabA <- "FLORES MARCELO"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+
+## JORGE LUIS OCOTITLA VAZQUEZ
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "JORGE LUIS", "OCOTITLA VAZQUEZ")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r ocotitla, echo=FALSE}
+trabN <- "JORGE LUIS"
+trabA <- "OCOTITLA VAZQUEZ"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## LILIANA CITALÁN DE LA CRUZ
+
+La profesora, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "LILIANA", "CITALAN DE LA CRUZ")`. De acuerdo a los datos, los días en los cuales la profesora asistió y no asistió se muestran en el siguiente calendario.
+
+```{r citalan, echo=FALSE}
+trabN <- "LILIANA"
+trabA <- "CITALAN DE LA CRUZ"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"), ymd("2025-05-09"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## LUIS BASULTO SOLIS
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "LUIS ANTONIO", "BASULTO SOLIS")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r basultoSolis, echo=FALSE}
+trabN <- "LUIS ANTONIO"
+trabA <- "BASULTO SOLIS"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+
+## MARIO LEONARDO FERNÁNDEZ UC
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "MARIO LEONARDO", "FERNANDEZ UC")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r fernandezUc, echo=FALSE}
+trabN <- "MARIO LEONARDO"
+trabA <- "FERNANDEZ UC"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## MELCHOR ERNESTO MUÑOZ DZIB
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "MELCHOR ERNESTO", "MUÑOZ DZIB")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r melchor, echo=FALSE}
+trabN <- "MELCHOR ERNESTO"
+trabA <- "MUÑOZ DZIB"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## MIRELLE SOSA CABALLERO
+
+La profesora, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "Mirellesosa", "")`. De acuerdo a los datos, los días en los cuales la profesora asistió y no asistió se muestran en el siguiente calendario.
+
+```{r mirelle, echo=FALSE}
+trabN <- "Mirellesosa"
+trabA <- ""
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"), ymd("2025-05-09"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## NESTOR ADOLFO DE LA TORRE SOLIS
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "NESTOR ADOLFO", "DE LA TORRE SOLIS")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r nestorA, echo=FALSE}
+trabN <- "NESTOR ADOLFO"
+trabA <- "DE LA TORRE SOLIS"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## ABRAHAM RAYMUNDO MENDOZA SANCHEZ
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "ABRAHAM RAYMUNDO", "MENDOZA SANCHEZ")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r abrahamR, echo=FALSE}
+trabN <- "ABRAHAM RAYMUNDO"
+trabA <- "MENDOZA SANCHEZ"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## LUIS CARIDAD NOVELO ALCOCER
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "Luis Caridad", "Novelo Alcocer")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r luisCaridad, echo=FALSE}
+trabN <- "Luis Caridad"
+trabA <- "Novelo Alcocer"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+
+## MARIANA CENICEROS NAVARRO
+
+La profesora, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "MARIANA", "CENICEROS NAVARRO")`. De acuerdo a los datos, los días en los cuales la profesora asistió y no asistió se muestran en el siguiente calendario.
+
+```{r ceniceros, echo=FALSE}
+trabN <- "MARIANA"
+trabA <- "CENICEROS NAVARRO"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"), ymd("2025-05-09"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## ALFREDO CORTES SANTOS
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "ALFREDO", "CORTES SANTOS")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r ALFRED, echo=FALSE}
+trabN <- "ALFREDO"
+trabA <- "CORTES SANTOS"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+## ANGEL PRIETO PAMEROS
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "ANGEL", "PRIETO PALMEROS")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r angelPrieto, echo=FALSE}
+trabN <- "ANGEL"
+trabA <- "PRIETO PALMEROS"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+
+## MILDRED PAULINA ÁLVAREZ MARTAGÓN
+
+La profesora, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "MILDRED PAULINA", "ALVAREZ MARTAGON")`. De acuerdo a los datos, los días en los cuales la profesora asistió y no asistió se muestran en el siguiente calendario.
+
+```{r Mildred, echo=FALSE}
+trabN <- "MILDRED PAULINA"
+trabA <- "ALVAREZ MARTAGON"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"), ymd("2025-05-09"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
+
+
+## FRANK ALVIN LORIA MAYEN
+
+El profesor, de acuerdo a los datos tiene clases los días: `r daysPeriod(exData, "FRANK ALVIN", "LORIA MAYEN")`. De acuerdo a los datos, los días en los cuales el profesor asistió y no asistió se muestran en el siguiente calendario.
+
+```{r loriaMayen, echo=FALSE}
+trabN <- "FRANK ALVIN"
+trabA <- "LORIA MAYEN"
+ndays   <- length(seq(as.Date("2025-01-01"), as.Date("2025-05-31"), by = "1 day"))
+myfills <- rep(NA, ndays)
+Inasis  <- exData %>% daysPeriod(trabN, trabA) %>% datesExpected("2025-01-13","2025-05-16")
+myfills[Inasis] <- "Inasistencias" 
+trabajados <- exData %>% filter(Nombre==trabN, Apellido==trabA) %>% mutate(Dias = yday(Fecha)) %>% select(Dias)
+asis <- unique(trabajados$Dias)
+myfills[asis] <- "Asistencia"
+temp <- c(ymd("2025-02-03"),ymd("2025-03-17"), ymd("2025-05-01"))
+myfills[yday(temp)] <- "Inhábil"
+receso <- seq(ymd("2025-04-14"),ymd("2025-04-25"),by="1 day")
+myfills[yday(receso)] <- "Receso"
+calendR(from="2025-01-01", to="2025-05-31", ncol=2, start="M", special.days = myfills, special.col=c("#9fc120","#f25c54", "#69b2d5", "#ffba08"), legend.pos="right", title = paste(trabN, trabA, sep=" "), title.size = 12, bg.col = "#f3f5f7", mbg.col= "#254b32", months.col = "white")
+```
